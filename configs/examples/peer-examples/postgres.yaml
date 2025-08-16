@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Peer
+metadata:
+  name: postgres_source
+  environment: production
+  description: Primary PostgreSQL database for user data
+spec:
+  type: postgres
+  config:
+    host: postgres.company.com
+    port: 5432
+    user: peerdb_user
+    password: ${POSTGRES_PASSWORD}  # Environment variable
+    database: users_db
+    tls_host: postgres.company.com
+    metadata_schema: _peerdb_internal
+  # Optional: connection validation settings
+  validation:
+    timeout: 30s
+    retry_attempts: 3

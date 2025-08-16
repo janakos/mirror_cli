@@ -59,7 +59,134 @@ mirror_cli config set --host localhost --port 8112
 mirror_cli peer list
 ```
 
-## Configuration
+## Infrastructure as Code with Configuration Files
+
+**Mirror CLI** supports managing peers and mirrors through YAML configuration files, enabling GitOps workflows and version control of your data replication infrastructure.
+
+### Configuration Structure
+
+```
+configs/
+├── peers/
+│   ├── production/
+│   ├── staging/
+│   └── development/
+├── mirrors/
+│   ├── production/
+│   ├── staging/
+│   └── development/
+└── examples/
+    ├── peer-examples/
+    └── mirror-examples/
+```
+
+### Configuration File Examples
+
+**PostgreSQL Peer Configuration:**
+```yaml
+apiVersion: v1
+kind: Peer
+metadata:
+  name: postgres_source
+  environment: production
+  description: Primary PostgreSQL database
+spec:
+  type: postgres
+  config:
+    host: postgres.company.com
+    port: 5432
+    user: peerdb_user
+    password: ${POSTGRES_PASSWORD}
+    database: users_db
+    metadata_schema: _peerdb_internal
+```
+
+**Snowflake Peer Configuration:**
+```yaml
+apiVersion: v1
+kind: Peer
+metadata:
+  name: snowflake_warehouse
+  environment: production
+  description: Snowflake data warehouse
+spec:
+  type: snowflake
+  config:
+    account_id: ${SNOWFLAKE_ACCOUNT}
+    username: peerdb_user
+    private_key: ${SNOWFLAKE_PRIVATE_KEY}
+    database: ANALYTICS_DB
+    warehouse: COMPUTE_WH
+    role: PEERDB_ROLE
+```
+
+**CDC Mirror Configuration:**
+```yaml
+apiVersion: v1
+kind: Mirror
+metadata:
+  name: users_sync_mirror
+  environment: production
+  description: Sync user data from PostgreSQL to Snowflake
+spec:
+  type: cdc
+  source: postgres_source
+  destination: snowflake_warehouse
+  tables:
+    - source: public.users
+      destination: ANALYTICS_DB.PUBLIC.USERS
+      partition_key: created_at
+    - source: public.user_profiles
+      destination: ANALYTICS_DB.PUBLIC.USER_PROFILES
+      exclude_columns:
+        - password_hash
+        - ssn
+  cdc:
+    batch_size: 1000
+    idle_timeout_seconds: 60
+    initial_snapshot: true
+    publication_name: peerdb_users_pub
+    replication_slot_name: peerdb_users_slot
+```
+
+### Configuration Management Commands
+
+```bash
+# Validate configuration files
+mirror_cli config validate -f configs/peers/production/
+mirror_cli config validate -f configs/mirrors/production/users-sync.yaml
+
+# Apply configurations (with dry-run first)
+mirror_cli config apply -f configs/peers/production/ --dry-run
+mirror_cli config apply -f configs/peers/production/
+
+# Apply single configuration
+mirror_cli config apply -f configs/mirrors/production/users-sync.yaml
+
+# Export existing configurations
+mirror_cli config export-peer my_postgres --output configs/peers/production/postgres.yaml
+mirror_cli config export-mirror my_mirror --output configs/mirrors/production/users-sync.yaml
+```
+
+### GitOps Workflow
+
+1. **Define Infrastructure**: Create YAML configurations in `configs/`
+2. **Version Control**: Commit configurations to git
+3. **Validate**: Run `config validate` in CI/CD pipelines
+4. **Apply**: Use `config apply` to deploy changes
+5. **Monitor**: Check status with `mirror status`
+
+### Environment Variables
+
+Configuration files support environment variable substitution using `${VAR_NAME}` syntax:
+
+```bash
+export POSTGRES_PASSWORD="secure_password"
+export SNOWFLAKE_ACCOUNT="myaccount.us-east-1"
+export SNOWFLAKE_PRIVATE_KEY="$(cat private_key.pem)"
+```
+
+## CLI Configuration
 
 The CLI uses a YAML configuration file located at `~/.mirror_cli/config.yaml`. You can also use environment variables or command-line flags.
 
@@ -260,9 +387,13 @@ mirror_cli config init --force
 
 | Command | Description |
 |---------|-------------|
-| `config show` | Show current configuration |
-| `config set` | Set configuration values |
-| `config init` | Initialize new configuration |
+| `config show` | Show current CLI configuration |
+| `config set` | Set CLI configuration values |
+| `config init` | Initialize new CLI configuration |
+| `config apply` | Apply peer/mirror configurations from files |
+| `config validate` | Validate configuration files |
+| `config export-peer` | Export peer configuration to file |
+| `config export-mirror` | Export mirror configuration to file |
 
 ## Development
 

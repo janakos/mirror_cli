@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Mirror
+metadata:
+  name: dev_test_sync
+  environment: development
+  description: Development test sync from PostgreSQL to Snowflake
+spec:
+  type: cdc
+  source: dev_postgres
+  destination: dev_snowflake
+  
+  # Table mappings
+  tables:
+    - source: public.users
+      destination: DEV_DB.PUBLIC.USERS
+    - source: public.orders
+      destination: DEV_DB.PUBLIC.ORDERS
+      exclude_columns:
+        - payment_token
+        - credit_card_hash
+
+  # CDC Configuration
+  cdc:
+    batch_size: 500
+    idle_timeout_seconds: 30
+    initial_snapshot: true
+    publication_name: peerdb_dev_pub
+    replication_slot_name: peerdb_dev_slot
+    
+  # Snapshot Configuration
+  snapshot:
+    num_rows_per_partition: 10000
+    max_parallel_workers: 2
+    num_tables_in_parallel: 1
+    
+  # Column tracking
+  columns:
+    soft_delete_column: _peerdb_deleted
+    synced_at_column: _peerdb_synced_at

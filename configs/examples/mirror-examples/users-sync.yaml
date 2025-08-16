@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Mirror
+metadata:
+  name: users_sync_mirror
+  environment: production
+  description: Sync user data from PostgreSQL to Snowflake
+spec:
+  type: cdc
+  source: postgres_source
+  destination: snowflake_warehouse
+  
+  # Table mappings
+  tables:
+    - source: public.users
+      destination: ANALYTICS_DB.PUBLIC.USERS
+      partition_key: created_at
+    - source: public.user_profiles
+      destination: ANALYTICS_DB.PUBLIC.USER_PROFILES
+      exclude_columns:
+        - password_hash
+        - ssn
+    - source: public.user_settings
+      destination: ANALYTICS_DB.PUBLIC.USER_SETTINGS
+
+  # CDC Configuration
+  cdc:
+    batch_size: 1000
+    idle_timeout_seconds: 60
+    initial_snapshot: true
+    publication_name: peerdb_users_pub
+    replication_slot_name: peerdb_users_slot
+    
+  # Snapshot Configuration
+  snapshot:
+    num_rows_per_partition: 100000
+    max_parallel_workers: 4
+    num_tables_in_parallel: 2
+    
+  # Optional: Soft delete and sync tracking
+  columns:
+    soft_delete_column: _peerdb_deleted
+    synced_at_column: _peerdb_synced_at
+    
+  # Optional: Environment variables
+  env:
+    CUSTOM_SETTING: "value"

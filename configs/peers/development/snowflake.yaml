@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Peer
+metadata:
+  name: dev_snowflake
+  environment: development
+  description: Development Snowflake warehouse
+spec:
+  type: snowflake
+  config:
+    account_id: ${SNOWFLAKE_ACCOUNT}
+    username: dev_user
+    private_key: ${SNOWFLAKE_PRIVATE_KEY}
+    database: DEV_DB
+    warehouse: DEV_WH
+    role: DEV_ROLE
+    query_timeout: 300
+    metadata_schema: _PEERDB_INTERNAL
+  validation:
+    timeout: 45s
+    retry_attempts: 3

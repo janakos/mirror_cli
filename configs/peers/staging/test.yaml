@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Peer
+metadata:
+    name: test_peer
+    environment: staging
+    description: Configuration for test_peer peer
+spec:
+    type: postgres
+    config:
+        host: localhost
+        port: 5432
+        user: postgres
+        password: ${POSTGRES_PASSWORD}
+        database: mydb

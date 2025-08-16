@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Peer
+metadata:
+  name: dev_postgres
+  environment: development
+  description: Development PostgreSQL database
+spec:
+  type: postgres
+  config:
+    host: localhost
+    port: 5432
+    user: postgres
+    password: ${POSTGRES_PASSWORD}
+    database: dev_db
+    metadata_schema: _peerdb_internal
+  validation:
+    timeout: 30s
+    retry_attempts: 3

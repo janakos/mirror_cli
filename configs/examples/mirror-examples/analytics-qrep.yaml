@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Mirror
+metadata:
+  name: analytics_qrep_mirror
+  environment: production
+  description: Query replication from PostgreSQL to Snowflake for analytics
+spec:
+  type: qrep
+  source: postgres_source
+  destination: snowflake_warehouse
+  
+  # Query replication configuration
+  qrep:
+    # Watermark configuration for incremental sync
+    watermark_table: public.analytics_events
+    watermark_column: created_at
+    
+    # Query to execute (supports templating)
+    query: |
+      SELECT 
+        id,
+        user_id,
+        event_name,
+        event_data,
+        created_at,
+        updated_at
+      FROM public.analytics_events
+      WHERE created_at >= {{.start}} AND created_at < {{.end}}
+      ORDER BY created_at
+    
+    # Destination configuration
+    destination_table: ANALYTICS_DB.PUBLIC.ANALYTICS_EVENTS
+    
+    # Sync settings
+    sync_mode: append  # or upsert
+    batch_size_int: 10000
+    batch_duration_seconds: 300  # 5 minutes
+    
+    # Parallelization
+    max_parallel_workers: 4
+    
+    # Write mode for destination
+    write_type: append  # or upsert
+    
+    # Optional: staging settings for large datasets
+    staging:
+      enabled: true
+      
+  # Schedule (cron format)
+  schedule: "0 */6 * * *"  # Every 6 hours
+  
+  # Optional: Environment variables
+  env:
+    ANALYTICS_SCHEMA: "public"
