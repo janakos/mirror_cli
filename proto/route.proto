@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "peers.proto";
+import "flow.proto";
+
+package peerdb_route;
+
+option go_package = "github.com/alexcode/mirror_cli/proto/gen";
+
+message CreateCDCFlowRequest {
+  peerdb_flow.FlowConnectionConfigs connection_configs = 1;
+}
+
+message CreateCDCFlowResponse { 
+  string workflow_id = 1; 
+}
+
+message ValidatePeerRequest { 
+  peerdb_peers.Peer peer = 1; 
+}
+
+message CreatePeerRequest {
+  peerdb_peers.Peer peer = 1;
+  bool allow_update = 2;
+}
+
+message DropPeerRequest { 
+  string peer_name = 1; 
+}
+
+message DropPeerResponse {}
+
+enum ValidatePeerStatus {
+  CREATION_UNKNOWN = 0;
+  VALID = 1;
+  INVALID = 2;
+}
+
+enum CreatePeerStatus {
+  VALIDATION_UNKNOWN = 0;
+  CREATED = 1;
+  FAILED = 2;
+}
+
+message ValidatePeerResponse {
+  ValidatePeerStatus status = 1;
+  string message = 2;
+}
+
+message CreatePeerResponse {
+  CreatePeerStatus status = 1;
+  string message = 2;
+}
+
+message MirrorStatusRequest {
+  string flow_job_name = 1;
+  bool include_flow_info = 2;
+  bool exclude_batches = 3;
+}
+
+message CDCBatch {
+  int64 start_lsn = 1;
+  int64 end_lsn = 2;
+  int64 num_rows = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
+  int64 batch_id = 6;
+}
+
+message CloneTableSummary {
+  string table_name = 1;
+  google.protobuf.Timestamp start_time = 2;
+  int32 num_partitions_completed = 3;
+  int32 num_partitions_total = 4;
+  int64 num_rows_synced = 5;
+  int64 avg_time_per_partition_ms = 6;
+  string flow_job_name = 7;
+  string source_table = 8;
+  bool fetch_completed = 9;
+  bool consolidate_completed = 10;
+  string mirror_name = 11;
+}
+
+message SnapshotStatus { 
+  repeated CloneTableSummary clones = 1; 
+}
+
+message CDCMirrorStatus {
+  peerdb_flow.FlowConnectionConfigs config = 1;
+  SnapshotStatus snapshot_status = 2;
+  repeated CDCBatch cdc_batches = 3;
+  peerdb_peers.DBType source_type = 4;
+  peerdb_peers.DBType destination_type = 5;
+  int64 rows_synced = 6;
+}
+
+message MirrorStatusResponse {
+  string flow_job_name = 1;
+  CDCMirrorStatus cdc_status = 3;
+  peerdb_flow.FlowStatus current_flow_state = 5;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ListMirrorsItem {
+  int64 id = 1;
+  string workflow_id = 2;
+  string name = 3;
+  string source_name = 4;
+  peerdb_peers.DBType source_type = 5;
+  string destination_name = 6;
+  peerdb_peers.DBType destination_type = 7;
+  double created_at = 8;
+  bool is_cdc = 9;
+}
+
+message ListMirrorsRequest {}
+message ListMirrorsResponse { 
+  repeated ListMirrorsItem mirrors = 1; 
+}
+
+message ListMirrorNamesRequest {}
+message ListMirrorNamesResponse { 
+  repeated string names = 1; 
+}
+
+message FlowStateChangeRequest {
+  string flow_job_name = 1;
+  peerdb_flow.FlowStatus requested_flow_state = 2;
+  optional peerdb_flow.FlowConfigUpdate flow_config_update = 5;
+  bool drop_mirror_stats = 6;
+  bool skip_destination_drop = 7;
+}
+
+message FlowStateChangeResponse {}
+
+message PeerListItem {
+  string name = 1;
+  peerdb_peers.DBType type = 2;
+}
+
+message ListPeersRequest {}
+message ListPeersResponse {
+  repeated PeerListItem items = 1;
+  repeated PeerListItem source_items = 2;
+  repeated PeerListItem destination_items = 3;
+}
+
+service FlowService {
+  rpc ValidatePeer(ValidatePeerRequest) returns (ValidatePeerResponse);
+  rpc CreatePeer(CreatePeerRequest) returns (CreatePeerResponse);
+  rpc DropPeer(DropPeerRequest) returns (DropPeerResponse);
+  rpc CreateCDCFlow(CreateCDCFlowRequest) returns (CreateCDCFlowResponse);
+  rpc ListMirrors(ListMirrorsRequest) returns (ListMirrorsResponse);
+  rpc ListMirrorNames(ListMirrorNamesRequest) returns (ListMirrorNamesResponse);
+  rpc FlowStateChange(FlowStateChangeRequest) returns (FlowStateChangeResponse);
+  rpc MirrorStatus(MirrorStatusRequest) returns (MirrorStatusResponse);
+  rpc ListPeers(ListPeersRequest) returns (ListPeersResponse);
+}
