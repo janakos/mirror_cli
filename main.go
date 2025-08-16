@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/alexcode/mirror_cli/cmd"
+	"github.com/janakos/mirror_cli/cmd"
 )
 
 func main() {

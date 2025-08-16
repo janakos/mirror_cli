@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/alexcode/mirror_cli/internal/client"
-	pb "github.com/alexcode/mirror_cli/proto/gen"
+	"github.com/janakos/mirror_cli/internal/client"
+	pb "github.com/janakos/mirror_cli/proto/gen"
 )
 
 // mirrorCmd represents the mirror command

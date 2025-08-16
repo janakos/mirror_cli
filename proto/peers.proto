@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package peerdb_peers;
 
-option go_package = "github.com/alexcode/mirror_cli/proto/gen";
+option go_package = "github.com/janakos/mirror_cli/proto/gen";
 
 enum DBType {
   BIGQUERY = 0;

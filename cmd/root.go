@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/alexcode/mirror_cli/internal/config"
+	"github.com/janakos/mirror_cli/internal/config"
 )
 
 var (

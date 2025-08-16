@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/alexcode/mirror_cli
+name: buf.build/janakos/mirror_cli
 deps:
   - buf.build/googleapis/googleapis
 breaking:

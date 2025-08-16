@@ -1,4 +1,4 @@
-module github.com/alexcode/mirror_cli
+module github.com/janakos/mirror_cli
 
 go 1.21
 

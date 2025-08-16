@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/alexcode/mirror_cli/internal/config"
+	"github.com/janakos/mirror_cli/internal/config"
 )
 
 // configCmd represents the config command

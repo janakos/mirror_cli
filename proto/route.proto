@@ -6,7 +6,7 @@ import "flow.proto";
 
 package peerdb_route;
 
-option go_package = "github.com/alexcode/mirror_cli/proto/gen";
+option go_package = "github.com/janakos/mirror_cli/proto/gen";
 
 message CreateCDCFlowRequest {
   peerdb_flow.FlowConnectionConfigs connection_configs = 1;

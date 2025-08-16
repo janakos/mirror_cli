@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/alexcode/mirror_cli/internal/config"
-	pb "github.com/alexcode/mirror_cli/proto/gen"
+	"github.com/janakos/mirror_cli/internal/config"
+	pb "github.com/janakos/mirror_cli/proto/gen"
 )
 
 // Client wraps the gRPC client with convenience methods
